@@ -118,7 +118,7 @@ class UI:
                 f"- **Stress Attempts:** {stress_attempts}\n"
                 f"- **Sensitivity:** {sensitivity}\n"
                 f"- **Stress Duration:** {self.format_time(stress_duration)}\n"
-                f"- **Last Stress:** {last_stress_str}"
+                f"- **Last Stressed:** {last_stress_str}"
             ) 
             
             
