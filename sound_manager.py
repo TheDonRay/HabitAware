@@ -1,32 +1,60 @@
-import winsound
 import threading
-import time
+from playsound import playsound
+import os
 
 class SoundManager:
-    """
-    Manages warning sound functionality with rate limiting and threading.
-    """
     def __init__(self):
-        """Initialize sound manager with default settings."""
-        self.last_sound_time = 0
         self.sound_enabled = True
+        self.sound_thread = None
+        self.warning_sound_path = os.path.join(os.path.dirname(__file__), "assets", "warning.wav")
+        
+        if not os.path.exists(os.path.dirname(self.warning_sound_path)):
+            os.makedirs(os.path.dirname(self.warning_sound_path))
+            
+        if not os.path.exists(self.warning_sound_path):
+            self._create_default_sound()
 
-    def play_warning_sound(self):
-        """Play a warning beep sound if enabled."""
-        if not self.sound_enabled:
-            return
+    def _create_default_sound(self):
         try:
-            winsound.Beep(800, 500)
-        except:
-            pass  # Silently fail if sound can't be played
-
-    def play_warning_sound_threaded(self):
-        """Play warning sound in a separate thread with rate limiting."""
-        current_time = time.time()
-        if current_time - self.last_sound_time > 1.0:
-            threading.Thread(target=self.play_warning_sound).start()
-            self.last_sound_time = current_time
+            import numpy as np
+            from scipy.io import wavfile
+            
+            sample_rate = 44100
+            duration = 0.5
+            frequency = 1000
+            
+            t = np.linspace(0, duration, int(sample_rate * duration), False)
+            note = np.sin(frequency * t * 2 * np.pi)
+            
+            fade_samples = int(0.1 * sample_rate)
+            fade_in = np.linspace(0, 1, fade_samples)
+            fade_out = np.linspace(1, 0, fade_samples)
+            note[:fade_samples] *= fade_in
+            note[-fade_samples:] *= fade_out
+            
+            audio = note * 32767
+            audio = audio.astype(np.int16)
+            
+            wavfile.write(self.warning_sound_path, sample_rate, audio)
+        except ImportError:
+            with open(self.warning_sound_path, 'wb') as f:
+                f.write(b'')
 
     def set_sound_enabled(self, enabled):
-        """Enable or disable sound playback."""
         self.sound_enabled = enabled
+
+    def play_warning_sound_threaded(self):
+        if self.sound_enabled:
+            if self.sound_thread is None or not self.sound_thread.is_alive():
+                self.sound_thread = threading.Thread(target=self._play_sound)
+                self.sound_thread.start()
+
+    def _play_sound(self):
+        try:
+            playsound(self.warning_sound_path)
+        except Exception as e:
+            print(f"Error playing sound: {e}")
+
+    def cleanup(self):
+        if self.sound_thread and self.sound_thread.is_alive():
+            self.sound_thread.join()
