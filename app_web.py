@@ -1,10 +1,9 @@
 import streamlit as st
-import time
+import cv2
 from detection import DetectionManager
 from sound_manager import SoundManager
 from camera_manager import CameraManager
 from ui import UI
-import cv2
 
 def main():
     # Initialize components
@@ -30,33 +29,33 @@ def main():
         try:
             while camera_manager.camera_active:
                 success, frame = camera_manager.read_frame()
+                
                 if not success:
                     st.error("Failed to capture frame")
                     break
 
-                # Process frame for detection
-                frame, hand_coords, mouth_coords = detection_manager.process_frame(frame)
+                if frame is not None:
+                    # Process frame for detection
+                    frame, hand_coords, mouth_coords = detection_manager.process_frame(frame)
 
-                # Check distance and show warning
-                if None not in hand_coords and None not in mouth_coords:
-                    cv2.line(frame, mouth_coords, hand_coords, (0, 255, 0), 2)
-                    distance = detection_manager.calculate_distance(hand_coords, mouth_coords)
+                    # Check distance and show warning
+                    if None not in hand_coords and None not in mouth_coords:
+                        cv2.line(frame, mouth_coords, hand_coords, (0, 255, 0), 2)
+                        distance = detection_manager.calculate_distance(hand_coords, mouth_coords)
 
-                    if distance < sensitivity:
-                        cv2.putText(frame, "Don't Bite!", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 3)
-                        
-                        if not st.session_state.warning_active:
-                            st.session_state.bite_attempts += 1
-                            st.session_state.warning_active = True
-                            sound_manager.play_warning_sound_threaded()
-                    else:
-                        st.session_state.warning_active = False
+                        if distance < sensitivity:
+                            cv2.putText(frame, "Don't Bite!", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 3)
+                            
+                            if not st.session_state.warning_active:
+                                st.session_state.bite_attempts += 1
+                                st.session_state.warning_active = True
+                                sound_manager.play_warning_sound_threaded()
+                        else:
+                            st.session_state.warning_active = False
 
-                # Update UI
-                ui.update_frame(frame)
-                ui.update_stats(st.session_state.bite_attempts, sensitivity)
-                
-                time.sleep(0.03)  # ~30 FPS
+                    # Update UI
+                    ui.update_frame(frame)
+                    ui.update_stats(st.session_state.bite_attempts, sensitivity)
 
         except Exception as e:
             st.error(f"An error occurred: {str(e)}")
