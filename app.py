@@ -29,7 +29,7 @@ def main():
                     cv2.putText(frame, "Don't Bite!", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 3)
 
             # Show the frame
-            cv2.imshow('NailGuard', frame)
+            cv2.imshow('HabitAware', frame)
 
             # Break loop on 'q' key press
             if cv2.waitKey(1) & 0xFF == ord('q'):

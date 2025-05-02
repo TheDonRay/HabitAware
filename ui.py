@@ -20,8 +20,8 @@ class UI:
         """
         Configure the Streamlit page with title and layout settings.
         """
-        st.set_page_config(page_title="NailGuard", layout="wide")
-        st.markdown("<h1 style='text-align: center;'>🖐️ NailGuard</h1>", unsafe_allow_html=True)
+        st.set_page_config(page_title="HabitAware", layout="wide")
+        st.markdown("<h1 style='text-align: center;'>🖐️ HabitAware</h1>", unsafe_allow_html=True)
         st.markdown("---")
 
     def initialize_session_state(self):
