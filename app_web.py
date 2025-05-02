@@ -17,8 +17,8 @@ def main():
     
     #to show the timer need to initialize timer variables - Rays Work  
     #here im basically just initializng the states to make sure they are initialized. 
-    if 'bite_attempts' not in st.session_state:
-        st.session_state.bite_attempts = 0
+    if 'stress_attempts' not in st.session_state:
+        st.session_state.stress_attempts = 0
     if 'warning_active' not in st.session_state:
         st.session_state.warning_active = False
     if 'timer_active' not in st.session_state:
@@ -73,7 +73,7 @@ def main():
                         cv2.putText(frame, f"Duration: {current_duration:.1f}s", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
                         
                         if not st.session_state.warning_active:
-                            st.session_state.bite_attempts += 1
+                            st.session_state.stress_attempts += 1
                             st.session_state.warning_active = True
                             sound_manager.play_warning_sound_threaded()
                     else: 
@@ -87,7 +87,7 @@ def main():
                     current_duration = st.session_state.total_duration 
                     if st.session_state.timer_active: 
                         current_duration += time.time() - st.session_state.start_time
-                    ui.update_stats(st.session_state.bite_attempts, sensitivity, current_duration)
+                    ui.update_stats(st.session_state.stress_attempts, sensitivity, current_duration)
 
         except Exception as e:
             st.error(f"An error occurred: {str(e)}")
