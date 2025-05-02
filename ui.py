@@ -72,7 +72,7 @@ class UI:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert to RGB for display
             self.frame_placeholder.image(frame, channels='RGB')
 
-    def update_stats(self, bite_attempts, sensitivity):
+    def update_stats(self, bite_attempts, sensitivity, duration=0):
         """
         Update the statistics display with current values.
         
@@ -82,5 +82,10 @@ class UI:
         """
         if self.stats_placeholder:
             self.stats_placeholder.markdown(
-                f"### Stats\n- **Bite Attempts:** {bite_attempts}\n- **Sensitivity:** {sensitivity}"
-            )
+                 f"### Stats\n"
+                f"- **Bite Attempts:** {bite_attempts}\n"
+                f"- **Sensitivity:** {sensitivity}\n"
+                f"- **Biting Duration:** {duration:.2f} seconds"
+            ) 
+            
+        

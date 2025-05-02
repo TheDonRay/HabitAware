@@ -78,12 +78,22 @@ def main():
                                 st.session_state.bite_attempts += 1
                                 st.session_state.warning_active = True
                                 sound_manager.play_warning_sound_threaded()
-                        else:
-                            st.session_state.warning_active = False
+                        else: 
+                            if st.session_state.timer_active: 
+                                st.session_state.total_duration += time.time() - st.session_state.start_time
+                                st.session_state.timer_active = False 
+                            st.session_state.warning_active = False 
+                    else: 
+                        if st.session_state.timer_active: 
+                            st.session_state.total_duration += time.time() - st.session_state.start_time
+                            st.session_state.timer_active = False
 
                     # Update UI
-                    ui.update_frame(frame)
-                    ui.update_stats(st.session_state.bite_attempts, sensitivity)
+                    ui.update_frame(frame) 
+                    current_duration = st.session_state.total_duration 
+                    if st.session_state.timer_active: 
+                        current_duration += time.time() - st.session_state.start_time
+                    ui.update_stats(st.session_state.bite_attempts, sensitivity, current_duration)
 
         except Exception as e:
             st.error(f"An error occurred: {str(e)}")
