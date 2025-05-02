@@ -1,3 +1,6 @@
+#libraries: 
+
+import time 
 import streamlit as st
 import cv2
 from detection import DetectionManager
@@ -10,7 +13,20 @@ def main():
     ui = UI()
     detection_manager = DetectionManager()
     sound_manager = SoundManager()
-    camera_manager = CameraManager()
+    camera_manager = CameraManager() 
+    
+    #to show the timer need to initialize timer variables - Rays Work  
+    #here im basically just initializng the states to make sure they are initialized. 
+    if 'bite_attempts' not in st.session_state:
+        st.session_state.bite_attempts = 0
+    if 'warning_active' not in st.session_state:
+        st.session_state.warning_active = False
+    if 'timer_active' not in st.session_state:
+        st.session_state.timer_active = False
+    if 'start_time' not in st.session_state:
+        st.session_state.start_time = 0
+    if 'total_duration' not in st.session_state:
+        st.session_state.total_duration = 0
 
     # Setup layout and get settings
     col1, col2 = ui.setup_layout()
@@ -42,9 +58,21 @@ def main():
                     if None not in hand_coords and None not in mouth_coords:
                         cv2.line(frame, mouth_coords, hand_coords, (0, 255, 0), 2)
                         distance = detection_manager.calculate_distance(hand_coords, mouth_coords)
-
-                        if distance < sensitivity:
-                            cv2.putText(frame, "Don't Bite!", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 3)
+                        
+                        #here im adding the timer logic Rayats work
+                        if distance < sensitivity:  
+                            if not st.session_state.timer_active: 
+                                st.session_state.timer_active = True 
+                                st.session_state.start_time = time.time()  
+                                
+                            #calculate the current duration: 
+                            current_duration = st.session_state.total_duration + (time.time() - st.session_state.start_time)
+                            
+                            #shows the warning
+                            cv2.putText(frame, "Don't Bite!", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 3) 
+                            
+                            #rayats work 
+                            cv2.putText(frame, f"Duration: {current_duration:.1f}s", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
                             
                             if not st.session_state.warning_active:
                                 st.session_state.bite_attempts += 1
