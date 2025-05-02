@@ -15,8 +15,7 @@ def main():
     sound_manager = SoundManager()
     camera_manager = CameraManager() 
     
-    #to show the timer need to initialize timer variables - Rays Work  
-    #here im basically just initializng the states to make sure they are initialized. 
+    # Initialize timer variables
     if 'stress_attempts' not in st.session_state:
         st.session_state.stress_attempts = 0
     if 'warning_active' not in st.session_state:
@@ -27,6 +26,14 @@ def main():
         st.session_state.start_time = 0
     if 'total_duration' not in st.session_state:
         st.session_state.total_duration = 0
+        
+    # Initialize not-biting tracking variables
+    if 'no_stress_start' not in st.session_state:
+        st.session_state.no_stress_start = time.time()
+    if 'total_no_stress' not in st.session_state:
+        st.session_state.total_no_stress = 0
+    if 'last_stress_time' not in st.session_state:
+        st.session_state.last_stress_time = 0
 
     # Setup layout and get settings
     col1, col2 = ui.setup_layout()
@@ -52,11 +59,11 @@ def main():
 
                 if frame is not None:
                     # Process frame for detection
-                    frame, hand_coords, mouth_coords, behavior = detection_manager.process_frame(frame, sensitivity)
+                    frame, hand_coords, face_zones, behavior = detection_manager.process_frame(frame, sensitivity)
 
                     # Check behavior and show warning
-                    if behavior is not None and None not in hand_coords and None not in mouth_coords:
-                        # Timer logic
+                    if behavior is not None and None not in hand_coords:
+                        # Timer logic for stress behavior
                         if not st.session_state.timer_active: 
                             st.session_state.timer_active = True 
                             st.session_state.start_time = time.time()  
@@ -75,19 +82,48 @@ def main():
                         if not st.session_state.warning_active:
                             st.session_state.stress_attempts += 1
                             st.session_state.warning_active = True
+                            st.session_state.last_stress_time = time.time()
                             sound_manager.play_warning_sound_threaded()
+                            
+                        # Reset no-stress timer
+                        if st.session_state.no_stress_start is not None:
+                            st.session_state.total_no_stress += time.time() - st.session_state.no_stress_start
+                            st.session_state.no_stress_start = None
                     else: 
                         if st.session_state.timer_active: 
                             st.session_state.total_duration += time.time() - st.session_state.start_time
                             st.session_state.timer_active = False 
-                        st.session_state.warning_active = False 
+                        st.session_state.warning_active = False
+                        
+                        # Start no-stress timer if not already running
+                        if st.session_state.no_stress_start is None:
+                            st.session_state.no_stress_start = time.time()
 
                     # Update UI
                     ui.update_frame(frame) 
+                    
+                    # Calculate current stress duration
                     current_duration = st.session_state.total_duration 
                     if st.session_state.timer_active: 
                         current_duration += time.time() - st.session_state.start_time
-                    ui.update_stats(st.session_state.stress_attempts, sensitivity, current_duration)
+                    
+                    # Calculate current no-stress duration
+                    current_no_stress = st.session_state.total_no_stress
+                    if st.session_state.no_stress_start is not None:
+                        current_no_stress += time.time() - st.session_state.no_stress_start
+                    
+                    # Calculate time since last stress
+                    time_since_last_stress = 0
+                    if st.session_state.last_stress_time > 0:
+                        time_since_last_stress = time.time() - st.session_state.last_stress_time
+                        
+                    ui.update_stats(
+                        stress_attempts=st.session_state.stress_attempts,
+                        sensitivity=sensitivity,
+                        stress_duration=current_duration,
+                        no_stress_duration=current_no_stress,
+                        time_since_last_stress=time_since_last_stress
+                    )
 
         except Exception as e:
             st.error(f"An error occurred: {str(e)}")

@@ -1,5 +1,6 @@
 import streamlit as st
 import cv2
+import time 
 
 class UI:
     """
@@ -29,8 +30,8 @@ class UI:
         Initialize Streamlit session state variables.
         These variables persist between reruns of the app.
         """
-        if 'bite_attempts' not in st.session_state:
-            st.session_state.bite_attempts = 0
+        if 'stress_attempts' not in st.session_state:
+            st.session_state.stress_attempts = 0
         if 'warning_active' not in st.session_state:
             st.session_state.warning_active = False
 
@@ -72,20 +73,53 @@ class UI:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert to RGB for display
             self.frame_placeholder.image(frame, channels='RGB')
 
-    def update_stats(self, stress_attempts, sensitivity, duration=0):
+    def format_time(self, seconds):
+        """
+        Format time duration into a human-readable string.
+        
+        Args:
+            seconds: Time duration in seconds
+            
+        Returns:
+            str: Formatted time string
+        """
+        seconds = int(seconds)
+        if seconds < 60: 
+            return f"{seconds}s"
+        elif seconds < 3600:
+            return f"{seconds//60}m {seconds%60}s"
+        else: 
+            return f"{seconds//3600}h {(seconds%3600)//60}m"
+
+    def update_stats(self, stress_attempts, sensitivity, stress_duration=0, no_stress_duration=0, time_since_last_stress=0):
         """
         Update the statistics display with current values.
         
         Args:
-            stress_attempts: Number of stress attempts detected
+            stress_attempts: Number of stress behavior attempts detected
             sensitivity: Current sensitivity setting
+            stress_duration: Total duration of stress behaviors
+            no_stress_duration: Total duration without stress behaviors
+            time_since_last_stress: Time since last stress behavior
         """
         if self.stats_placeholder:
+            # Format last stress time
+            if time_since_last_stress == 0: 
+                last_stress_str = "Never"
+            elif time_since_last_stress < 60: 
+                last_stress_str = f"{int(time_since_last_stress)}s ago"
+            elif time_since_last_stress < 3600:
+                last_stress_str = f"{int(time_since_last_stress)//60}m ago"
+            else: 
+                last_stress_str = f"{int(time_since_last_stress//3600)}h ago"
+                
             self.stats_placeholder.markdown(
-                 f"### Stats\n"
+                f"### Stats\n"
                 f"- **Stress Attempts:** {stress_attempts}\n"
                 f"- **Sensitivity:** {sensitivity}\n"
-                f"- **Stress Duration:** {duration:.2f} seconds"
+                f"- **Stress Duration:** {self.format_time(stress_duration)}\n"
+                f"- **No-Stress Duration:** {self.format_time(no_stress_duration)}\n"
+                f"- **Last Stress:** {last_stress_str}"
             ) 
             
         
