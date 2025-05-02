@@ -91,7 +91,7 @@ class UI:
         else: 
             return f"{seconds//3600}h {(seconds%3600)//60}m"
 
-    def update_stats(self, stress_attempts, sensitivity, stress_duration=0, no_stress_duration=0, time_since_last_stress=0):
+    def update_stats(self, stress_attempts, sensitivity, stress_duration=0, time_since_last_stress=0):
         """
         Update the statistics display with current values.
         
@@ -118,8 +118,9 @@ class UI:
                 f"- **Stress Attempts:** {stress_attempts}\n"
                 f"- **Sensitivity:** {sensitivity}\n"
                 f"- **Stress Duration:** {self.format_time(stress_duration)}\n"
-                f"- **No-Stress Duration:** {self.format_time(no_stress_duration)}\n"
                 f"- **Last Stress:** {last_stress_str}"
             ) 
             
+            
+    #taking this out: #f"- **No-Stress Duration:** {self.format_time(no_stress_duration)}\n" 
         

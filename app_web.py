@@ -102,12 +102,12 @@ def main():
                     # Update UI
                     ui.update_frame(frame) 
                     
-                    # Calculate current stress duration
+                    #Calculate current stress duration
                     current_duration = st.session_state.total_duration 
                     if st.session_state.timer_active: 
                         current_duration += time.time() - st.session_state.start_time
                     
-                    # Calculate current no-stress duration
+                    #Calculate current no-stress duration
                     current_no_stress = st.session_state.total_no_stress
                     if st.session_state.no_stress_start is not None:
                         current_no_stress += time.time() - st.session_state.no_stress_start
@@ -121,7 +121,7 @@ def main():
                         stress_attempts=st.session_state.stress_attempts,
                         sensitivity=sensitivity,
                         stress_duration=current_duration,
-                        no_stress_duration=current_no_stress,
+                        #no_stress_duration=current_no_stress,
                         time_since_last_stress=time_since_last_stress
                     )
 
