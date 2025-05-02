@@ -24,18 +24,19 @@ class DetectionManager:
         self.mp_draw = mp.solutions.drawing_utils  # For drawing landmarks
         self.draw_landmarks = draw_landmarks
 
-    def process_frame(self, frame):
+    def process_frame(self, frame, sensitivity=100):
         """
-        Process a single frame to detect hands and face landmarks, identifying specific bad habits.
+        Process a single frame to detect hands and face landmarks.
         
         Args:
             frame: The input frame from the camera
+            sensitivity: The distance threshold for detecting behaviors (in pixels)
             
         Returns:
-            tuple: (processed_frame, hand_coords, face_zones, behavior)
+            tuple: (processed_frame, hand_coords, mouth_coords, behavior)
                 - processed_frame: The frame with optional landmarks drawn
                 - hand_coords: (x, y) coordinates of the closest finger to face
-                - face_zones: Dictionary containing top and bottom face zone coordinates
+                - mouth_coords: (x, y) coordinates of the mouth center
                 - behavior: String indicating detected behavior ('hair_pulling', 'nail_biting', or None)
         """
         # Convert frame to RGB (MediaPipe requires RGB)
@@ -76,54 +77,60 @@ class DetectionManager:
             for face_landmarks in face_results.multi_face_landmarks:
                 h, w, c = frame.shape
                 
-                # Get face bounding box coordinates
-                face_top = face_landmarks.landmark[10]  # Top of forehead
-                face_bottom = face_landmarks.landmark[152]  # Bottom of chin
-                face_left = face_landmarks.landmark[234]  # Left side
-                face_right = face_landmarks.landmark[454]  # Right side
+                # Get mouth landmarks (13 and 14 are top and bottom of mouth)
+                mouth_top = face_landmarks.landmark[13]
+                mouth_bottom = face_landmarks.landmark[14]
                 
-                # Calculate face zones
-                face_top_y = int(face_top.y * h)
-                face_bottom_y = int(face_bottom.y * h)
-                face_mid_y = int((face_top_y + face_bottom_y) / 2)
+                # Get hair landmarks (10 is top of forehead, 151 is eyebrow level)
+                hair_top = face_landmarks.landmark[10]
+                hair_bottom = face_landmarks.landmark[151]
                 
-                # Store face zone coordinates
-                face_zones['top'] = {
-                    'top': face_top_y,
-                    'bottom': face_mid_y,
-                    'left': int(face_left.x * w),
-                    'right': int(face_right.x * w)
-                }
-                face_zones['bottom'] = {
-                    'top': face_mid_y,
-                    'bottom': face_bottom_y,
-                    'left': int(face_left.x * w),
-                    'right': int(face_right.x * w)
-                }
+                # Calculate mouth center
+                mouth_x = int((mouth_top.x + mouth_bottom.x) / 2 * w)
+                mouth_y = int((mouth_top.y + mouth_bottom.y) / 2 * h)
                 
-                # Draw face zones if enabled
+                # Calculate hair center (extend above head)
+                hair_height = hair_bottom.y - hair_top.y
+                hair_x = int(hair_top.x * w)
+                hair_y = int((hair_top.y - hair_height) * h)  # Extend above head by one head height
+                
+                # Draw centers if enabled
                 if self.draw_landmarks:
-                    # Draw top zone (hair pulling zone)
-                    cv2.rectangle(frame, 
-                                (face_zones['top']['left'], face_zones['top']['top']),
-                                (face_zones['top']['right'], face_zones['top']['bottom']),
-                                (0, 255, 0), 2)
-                    # Draw bottom zone (nail biting zone)
-                    cv2.rectangle(frame,
-                                (face_zones['bottom']['left'], face_zones['bottom']['top']),
-                                (face_zones['bottom']['right'], face_zones['bottom']['bottom']),
-                                (0, 0, 255), 2)
+                    cv2.circle(frame, (mouth_x, mouth_y), 5, (255, 0, 255), -1)  # Pink for mouth
+                    cv2.circle(frame, (hair_x, hair_y), 5, (0, 255, 0), -1)  # Green for hair
                 
-                # Determine behavior based on hand position
-                if hand_x is not None and hand_y is not None:
-                    if (face_zones['top']['left'] <= hand_x <= face_zones['top']['right'] and
-                        face_zones['top']['top'] <= hand_y <= face_zones['top']['bottom']):
-                        behavior = 'hair_pulling'
-                    elif (face_zones['bottom']['left'] <= hand_x <= face_zones['bottom']['right'] and
-                          face_zones['bottom']['top'] <= hand_y <= face_zones['bottom']['bottom']):
-                        behavior = 'nail_biting'
+                # If we have finger tips, find the closest finger to either point
+                if finger_tips:
+                    min_distance = float('inf')
+                    closest_finger = None
+                    target_point = None
+                    behavior = None
+                    
+                    for finger_x, finger_y in finger_tips:
+                        # Calculate distances to both points
+                        mouth_distance = math.hypot(mouth_x - finger_x, mouth_y - finger_y)
+                        hair_distance = math.hypot(hair_x - finger_x, hair_y - finger_y)
+                        
+                        # Find which point is closer and within sensitivity
+                        if mouth_distance < hair_distance and mouth_distance < sensitivity:
+                            min_distance = mouth_distance
+                            closest_finger = (finger_x, finger_y)
+                            target_point = (mouth_x, mouth_y)
+                            behavior = 'nail_biting'
+                        elif hair_distance < mouth_distance and hair_distance < sensitivity:
+                            min_distance = hair_distance
+                            closest_finger = (finger_x, finger_y)
+                            target_point = (hair_x, hair_y)
+                            behavior = 'hair_pulling'
+                    
+                    if closest_finger:
+                        hand_x, hand_y = closest_finger
+                        # Draw line to show the interaction
+                        if self.draw_landmarks:
+                            color = (0, 255, 0) if behavior == 'hair_pulling' else (0, 0, 255)
+                            cv2.line(frame, (hand_x, hand_y), target_point, color, 2)
 
-        return frame, (hand_x, hand_y), face_zones, behavior
+        return frame, (hand_x, hand_y), (mouth_x, mouth_y), behavior
 
     def get_finger_tips(self, hand_landmarks, frame_shape):
         """

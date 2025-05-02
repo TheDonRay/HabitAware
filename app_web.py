@@ -52,41 +52,35 @@ def main():
 
                 if frame is not None:
                     # Process frame for detection
-                    frame, hand_coords, mouth_coords = detection_manager.process_frame(frame)
+                    frame, hand_coords, mouth_coords, behavior = detection_manager.process_frame(frame, sensitivity)
 
-                    # Check distance and show warning
-                    if None not in hand_coords and None not in mouth_coords:
-                        cv2.line(frame, mouth_coords, hand_coords, (0, 255, 0), 2)
-                        distance = detection_manager.calculate_distance(hand_coords, mouth_coords)
+                    # Check behavior and show warning
+                    if behavior is not None and None not in hand_coords and None not in mouth_coords:
+                        # Timer logic
+                        if not st.session_state.timer_active: 
+                            st.session_state.timer_active = True 
+                            st.session_state.start_time = time.time()  
+                            
+                        # Calculate the current duration
+                        current_duration = st.session_state.total_duration + (time.time() - st.session_state.start_time)
                         
-                        #here im adding the timer logic Rayats work
-                        if distance < sensitivity:  
-                            if not st.session_state.timer_active: 
-                                st.session_state.timer_active = True 
-                                st.session_state.start_time = time.time()  
-                                
-                            #calculate the current duration: 
-                            current_duration = st.session_state.total_duration + (time.time() - st.session_state.start_time)
-                            
-                            #shows the warning
-                            cv2.putText(frame, "Don't Bite!", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 3) 
-                            
-                            #rayats work 
-                            cv2.putText(frame, f"Duration: {current_duration:.1f}s", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
-                            
-                            if not st.session_state.warning_active:
-                                st.session_state.bite_attempts += 1
-                                st.session_state.warning_active = True
-                                sound_manager.play_warning_sound_threaded()
-                        else: 
-                            if st.session_state.timer_active: 
-                                st.session_state.total_duration += time.time() - st.session_state.start_time
-                                st.session_state.timer_active = False 
-                            st.session_state.warning_active = False 
+                        # Show appropriate warning
+                        if behavior == 'hair_pulling':
+                            cv2.putText(frame, "Don't Pull Hair!", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 3)
+                        else:  # nail_biting
+                            cv2.putText(frame, "Don't Bite!", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 3)
+                        
+                        cv2.putText(frame, f"Duration: {current_duration:.1f}s", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
+                        
+                        if not st.session_state.warning_active:
+                            st.session_state.bite_attempts += 1
+                            st.session_state.warning_active = True
+                            sound_manager.play_warning_sound_threaded()
                     else: 
                         if st.session_state.timer_active: 
                             st.session_state.total_duration += time.time() - st.session_state.start_time
-                            st.session_state.timer_active = False
+                            st.session_state.timer_active = False 
+                        st.session_state.warning_active = False 
 
                     # Update UI
                     ui.update_frame(frame) 
