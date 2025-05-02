@@ -34,7 +34,7 @@ class DetectionManager:
         Returns:
             tuple: (processed_frame, hand_coords, mouth_coords)
                 - processed_frame: The frame with optional landmarks drawn
-                - hand_coords: (x, y) coordinates of the index finger tip
+                - hand_coords: (x, y) coordinates of the closest finger to mouth
                 - mouth_coords: (x, y) coordinates of the mouth center
         """
         # Convert frame to RGB (MediaPipe requires RGB)
@@ -47,6 +47,7 @@ class DetectionManager:
         # Initialize coordinates as None (will be updated if detected)
         hand_x, hand_y = None, None
         mouth_x, mouth_y = None, None
+        finger_tips = []  # Initialize finger_tips list
 
         # Process hand landmarks
         if hand_results.multi_hand_landmarks:
@@ -54,10 +55,19 @@ class DetectionManager:
                 # Draw landmarks if enabled
                 if self.draw_landmarks:
                     self.mp_draw.draw_landmarks(frame, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
-                # Get index finger tip coordinates (landmark 8)
-                index_finger_tip = hand_landmarks.landmark[8]
+                
+                # Get all finger tips coordinates
                 h, w, c = frame.shape
-                hand_x, hand_y = int(index_finger_tip.x * w), int(index_finger_tip.y * h)
+                
+                # Thumb (4), Index finger (8), middle finger (12), ring finger (16), pinky (20)
+                finger_landmarks = [4, 8, 12, 16, 20]
+                for landmark_id in finger_landmarks:
+                    finger_tip = hand_landmarks.landmark[landmark_id]
+                    finger_tips.append((int(finger_tip.x * w), int(finger_tip.y * h)))
+                
+                # Store all finger tips for later use
+                if finger_tips:  # Only set default if we have finger tips
+                    hand_x, hand_y = finger_tips[0]  # Default to first finger if no mouth detected
 
         # Process face landmarks
         if face_results.multi_face_landmarks:
@@ -72,8 +82,40 @@ class DetectionManager:
                 # Draw mouth center if enabled
                 if self.draw_landmarks:
                     cv2.circle(frame, (mouth_x, mouth_y), 5, (255, 0, 255), -1)
+                
+                # If we have finger tips and mouth coordinates, find the closest finger
+                if finger_tips and mouth_x is not None and mouth_y is not None:
+                    min_distance = float('inf')
+                    closest_finger = None
+                    for finger_x, finger_y in finger_tips:
+                        distance = math.hypot(mouth_x - finger_x, mouth_y - finger_y)
+                        if distance < min_distance:
+                            min_distance = distance
+                            closest_finger = (finger_x, finger_y)
+                    if closest_finger:
+                        hand_x, hand_y = closest_finger
 
         return frame, (hand_x, hand_y), (mouth_x, mouth_y)
+
+    def get_finger_tips(self, hand_landmarks, frame_shape):
+        """
+        Get coordinates of all finger tips from hand landmarks.
+        
+        Args:
+            hand_landmarks: MediaPipe hand landmarks
+            frame_shape: Shape of the frame (height, width, channels)
+            
+        Returns:
+            list: List of (x, y) coordinates for each finger tip
+        """
+        h, w, c = frame_shape
+        finger_tips = []
+        # Thumb (4), Index finger (8), middle finger (12), ring finger (16), pinky (20)
+        finger_landmarks = [4, 8, 12, 16, 20]
+        for landmark_id in finger_landmarks:
+            finger_tip = hand_landmarks.landmark[landmark_id]
+            finger_tips.append((int(finger_tip.x * w), int(finger_tip.y * h)))
+        return finger_tips
 
     def calculate_distance(self, hand_coords, mouth_coords):
         """
