@@ -4,6 +4,7 @@ from detection import DetectionManager
 from sound_manager import SoundManager
 from camera_manager import CameraManager
 from ui import UI
+import cv2
 
 def main():
     # Initialize components
