@@ -15,7 +15,6 @@ def main():
     total_duration = 0 #becausse we want a timer to keep track how long you are biting your nail 
     proximity_threshold = 50 #handles the distance 
     
-    
     # Start camera
     camera_manager.start_camera()
     
@@ -27,45 +26,37 @@ def main():
                 break
 
             # Process frame for detection
-            frame, hand_coords, mouth_coords = detection_manager.process_frame(frame)
+            frame, hand_coords, face_zones, behavior = detection_manager.process_frame(frame)
 
-            # Check distance and show warning
-            if None not in hand_coords and None not in mouth_coords:
-                cv2.line(frame, mouth_coords, hand_coords, (0, 255, 0), 2)
-                distance = detection_manager.calculate_distance(hand_coords, mouth_coords) 
+            # Check behavior and show warning
+            if behavior is not None:
+                # Draw line to show the interaction
+                if None not in hand_coords and face_zones['top'] is not None:
+                    if behavior == 'hair_pulling':
+                        zone = face_zones['top']
+                        zone_center = ((zone['left'] + zone['right']) // 2, 
+                                     (zone['top'] + zone['bottom']) // 2)
+                        cv2.line(frame, hand_coords, zone_center, (0, 255, 0), 2)
+                    elif behavior == 'nail_biting':
+                        zone = face_zones['bottom']
+                        zone_center = ((zone['left'] + zone['right']) // 2, 
+                                     (zone['top'] + zone['bottom']) // 2)
+                        cv2.line(frame, hand_coords, zone_center, (0, 0, 255), 2)
                 
-                #Timer Logic Rayats work. 
-                if distance < proximity_threshold: 
-                    if not timer_active: 
-                        #need to start the timer 
-                        timer_active = True 
+                #Timer Logic
+                if behavior in ['hair_pulling', 'nail_biting']:
+                    if not is_timer_active: 
+                        is_timer_active = True 
                         start_time = time.time() 
-                    #okay so now what im going to do is update the current duration 
-                    current_duration = total_duration + (time.time() - start_time) #basically starts at 0 and starts the timer 
-                    
-                  
+                    current_duration = total_duration + (time.time() - start_time)
+                    # Add your timer display logic here
+                else:
+                    is_timer_active = False
+                    total_duration = 0
 
-                if distance < 50:  # Fixed sensitivity for desktop version
-                    cv2.putText(frame, "Don't Bite!", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 3)
-                    
-                    #now im adding the duration to show 
-                    cv2.putText(frame, f"Duration: {current_duration:.1f}s", (5,0,100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2) 
-                 
-                else: 
-                    if timer_active: 
-                        #we want to stop the timer and accumulate total duration 
-                        total_duration += time.time() - start_time 
-                        timer_active = False 
-            else: #my work hends here after this else - Rayat for the if statement condition
-                if timer_active: 
-                    #we want to stop the timer if tracking is lost 
-                    total_duration += time.time() - start_time 
-                    timer_active = False
-                    
-                    
-            # Show the frame
-            cv2.imshow('HabitAware', frame)
-
+            # Display the frame
+            cv2.imshow('NailGuard', frame)
+            
             # Break loop on 'q' key press
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
@@ -74,12 +65,7 @@ def main():
         print(f"An error occurred: {str(e)}")
         
     finally:
-        #print the final duration Rays work 
-        if timer_active: 
-            total_duration += time.time() - start_time
-        print(f"Total time near mouth: {total_duration:.2f} seconds") 
-        
-        
+        # Cleanup
         camera_manager.stop_camera()
         detection_manager.cleanup()
         cv2.destroyAllWindows()
