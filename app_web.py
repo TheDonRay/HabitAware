@@ -7,7 +7,8 @@ import plotly.express as px
 from detection import DetectionManager
 from sound_manager import SoundManager
 from camera_manager import CameraManager
-from ui import UI
+from ui import UI 
+from StressPopup import StressPopUp
 
 def main():
     # Initialize components
@@ -15,6 +16,9 @@ def main():
     detection_manager = DetectionManager()
     sound_manager = SoundManager()
     camera_manager = CameraManager() 
+    stress_popup = StressPopUp() 
+    
+    # Initialize timer variables
 
     # Initialize session state variables
     if 'stress_attempts' not in st.session_state:
@@ -93,6 +97,8 @@ def main():
                                 st.session_state.last_stress_time = time.time()
                                 sound_manager.play_warning_sound_threaded()
 
+                                stress_popup.check_and_show_motivation(st.session_state.stress_attempts)
+                                
                             if st.session_state.no_stress_start is not None:
                                 st.session_state.total_no_stress += time.time() - st.session_state.no_stress_start
                                 st.session_state.no_stress_start = None

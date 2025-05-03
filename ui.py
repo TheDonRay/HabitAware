@@ -1,6 +1,7 @@
 import streamlit as st
 import cv2
-import time 
+import time  
+from StressPopup import StressPopUp
 
 class UI:
     """
@@ -15,7 +16,8 @@ class UI:
         self.setup_page()
         self.initialize_session_state()
         self.frame_placeholder = None  # Will hold the frame display area
-        self.stats_placeholder = None  # Will hold the statistics display area
+        self.stats_placeholder = None  # Will hold the statistics display area 
+        self.stress_popup = StressPopUp() 
 
     def setup_page(self):
         """
@@ -118,9 +120,12 @@ class UI:
                 f"- **Stress-Linked Behaviors Today:** {stress_attempts}\n"
                 f"- **Sensitivity:** {sensitivity}\n"
                 f"- **Stress Duration:** {self.format_time(stress_duration)}\n"
-                f"- **Last Stressed:** {last_stress_str}"
+                f"- **Last Stressed:** {last_stress_str}" 
+                
+                f"  {'' if stress_attempts >= 5 else ''}"
             ) 
             
             
-    #taking this out: #f"- **No-Stress Duration:** {self.format_time(no_stress_duration)}\n" 
-        
+    #check if we should show the pop automatically 
+    # if stress_attempts >= 10 and not st.session_state.motivation_shown:
+    #             self.stress_popup.check_and_show_motivation(stress_attempts)

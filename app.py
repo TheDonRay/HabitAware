@@ -3,6 +3,7 @@ import time
 import cv2 
 from detection import DetectionManager
 from camera_manager import CameraManager
+from StressPopup import StressPopUp
 
 def main():
     # Initialize components
@@ -15,8 +16,14 @@ def main():
     total_duration = 0 #becausse we want a timer to keep track how long you are biting your nail 
     proximity_threshold = 50 #handles the distance 
     
+    
+    #stress atempts =  
+    stress_attempts = 0
     # Start camera
-    camera_manager.start_camera()
+    camera_manager.start_camera() 
+    
+    #stress Pop up
+    StressPopup = StressPopUp() 
     
     try:
         while True:
@@ -41,7 +48,9 @@ def main():
                         zone = face_zones['bottom']
                         zone_center = ((zone['left'] + zone['right']) // 2, 
                                      (zone['top'] + zone['bottom']) // 2)
-                        cv2.line(frame, hand_coords, zone_center, (0, 0, 255), 2)
+                        cv2.line(frame, hand_coords, zone_center, (0, 0, 255), 2) 
+                        
+                        stress_attempts+= 1
                 
                 #Timer Logic
                 if behavior in ['hair_pulling', 'nail_biting']:
