@@ -115,7 +115,7 @@ class UI:
                 
             self.stats_placeholder.markdown(
                 f"### Stats\n"
-                f"- **Stress Attempts:** {stress_attempts}\n"
+                f"- **Stress-Linked Behaviors Today:** {stress_attempts}\n"
                 f"- **Sensitivity:** {sensitivity}\n"
                 f"- **Stress Duration:** {self.format_time(stress_duration)}\n"
                 f"- **Last Stressed:** {last_stress_str}"
