@@ -48,6 +48,7 @@ class DetectionManager:
 
         # Initialize coordinates and behavior
         hand_x, hand_y = None, None
+        mouth_x, mouth_y = None, None
         face_zones = {'top': None, 'bottom': None}
         behavior = None
         finger_tips = []
