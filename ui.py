@@ -132,7 +132,7 @@ class UI:
                             <h2 style='margin: 1px 0; color: #2ecc71; font-size: 16px;'>⏱️ {self.format_time(stress_duration)}</h2>
                         </div>
                         <div style='background-color: black; padding: 1px; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);'>
-                            <p style='margin: 0; color: #666; font-size: 12px;'>Last Stress</p>
+                            <p style='margin: 0; color: #666; font-size: 12px;'>Clean Streak</p>
                             <h2 style='margin: 1px 0; color: #9b59b6; font-size: 16px;'>🕒 {last_stress_str}</h2>
                         </div>
                     </div>
@@ -141,6 +141,3 @@ class UI:
                 unsafe_allow_html=True
             )
 
-    #check if we should show the pop automatically 
-    # if stress_attempts >= 10 and not st.session_state.motivation_shown:
-    #             self.stress_popup.check_and_show_motivation(stress_attempts)
