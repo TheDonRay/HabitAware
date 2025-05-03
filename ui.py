@@ -116,16 +116,34 @@ class UI:
                 last_stress_str = f"{int(time_since_last_stress//3600)}h ago"
                 
             self.stats_placeholder.markdown(
-                f"### Stats\n"
-                f"- **Stress-Linked Behaviors Today:** {stress_attempts}\n"
-                f"- **Sensitivity:** {sensitivity}\n"
-                f"- **Stress Duration:** {self.format_time(stress_duration)}\n"
-                f"- **Last Stressed:** {last_stress_str}" 
+                f"""
+                <div style='background-color: #black; padding: 2px; border-radius: 2px;'>
+                    <h3 style='color: #666; margin-bottom: 2px;'>📊 Stats</h3>
+                    <div style='display: flex; flex-direction: column; gap: 2px;'>
+                        <div style='background-color: black; padding: 2px; border-radius: 2px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>
+                            <p style='margin: 0; color: #666;'>Stress-Linked Behaviors Today</p>
+                            <h2 style='margin: 2px 0; color: #e74c3c;'>🔴 {stress_attempts}</h2>
+                        </div>
+                        <div style='background-color: black; padding: 2px; border-radius: 2px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>
+                            <p style='margin: 0; color: #666;'>Sensitivity</p>
+                            <h2 style='margin: 2px 0; color: #3498db;'>🎚️ {sensitivity}</h2>
+                        </div>
+                        <div style='background-color: black; padding: 2px; border-radius: 2px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>
+                            <p style='margin: 0; color: #666;'>Stress Duration</p>
+                            <h2 style='margin: 2px 0; color: #2ecc71;'>⏱️ {self.format_time(stress_duration)}</h2>
+                        </div>
+                        <div style='background-color: black; padding: 2px; border-radius: 2px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>
+                            <p style='margin: 0; color: #666;'>Last Stressed</p>
+                            <h2 style='margin: 2px 0; color: #9b59b6;'>🕒 {last_stress_str}</h2>
+                        </div>
+                    </div>
+                </div>
+                {'' if stress_attempts >= 5 else ''}
+                """, 
                 
-                f"  {'' if stress_attempts >= 5 else ''}"
-            ) 
-            
-            
+                unsafe_allow_html=True
+            )
+
     #check if we should show the pop automatically 
     # if stress_attempts >= 10 and not st.session_state.motivation_shown:
     #             self.stress_popup.check_and_show_motivation(stress_attempts)
