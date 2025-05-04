@@ -8,7 +8,7 @@ from detection import DetectionManager
 from sound_manager import SoundManager
 from camera_manager import CameraManager
 from ui import UI 
-from StressPopup import StressPopUp
+from StressPopup import StressPopup
 
 def main():
     # Initialize components
@@ -16,7 +16,7 @@ def main():
     detection_manager = DetectionManager()
     sound_manager = SoundManager()
     camera_manager = CameraManager() 
-    stress_popup = StressPopUp() 
+    stress_popup = StressPopup() 
     
     # Initialize timer variables
 

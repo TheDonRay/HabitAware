@@ -18,7 +18,7 @@ class StressPopup:
         self.root = None
         self.popup_thread = None
         self.is_showing = False
-        self.duration = 5  # Duration in seconds
+        self.duration = 7  # Duration in seconds
         self.last_shown_at = 0  # Track when we last showed a tip
         self.last_positive_at = 0  # Track when we last showed positive reinforcement
         self.cached_tip = None
@@ -93,13 +93,14 @@ class StressPopup:
 
     def show_popup(self, current_attempts):
         """Display the motivational popup"""
-        st.toast(
-            f"🌟 You've reached {current_attempts} stress attempts!\n"
-            f"Here's something to help you relax:\n"
-            f"**{self.fetch_ai_tip()}**",
-            icon="🌟",
-            duration=10000  # Show for 10 seconds
-        )
+        # Show multiple toasts in sequence to create a longer-lasting effect
+        for _ in range(1):  # Show 3 toasts in sequence
+            st.toast(
+                f"🌟 You've reached {current_attempts} stress attempts!\n"
+                f"Here's something to help you relax:\n"
+                f"**{self.fetch_ai_tip()}**",
+                icon="🌟"
+            )
 
     def show_positive_popup(self, time_since_last_stress):
         """Display the positive reinforcement popup"""

@@ -1,7 +1,7 @@
 import streamlit as st
 import cv2
 import time  
-from StressPopup import StressPopUp
+from StressPopup import StressPopup
 
 class UI:
     """
@@ -17,7 +17,7 @@ class UI:
         self.initialize_session_state()
         self.frame_placeholder = None  # Will hold the frame display area
         self.stats_placeholder = None  # Will hold the statistics display area 
-        self.stress_popup = StressPopUp() 
+        self.stress_popup = StressPopup() 
 
     def setup_page(self):
         """
