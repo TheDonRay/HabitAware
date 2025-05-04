@@ -3,6 +3,9 @@ import openai
 from dotenv import load_dotenv
 import os
 import time
+import tkinter as tk
+from tkinter import ttk
+import threading
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -10,8 +13,12 @@ load_dotenv()
 # Get the API key from the environment
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-class StressPopUp:
+class StressPopup:
     def __init__(self):
+        self.root = None
+        self.popup_thread = None
+        self.is_showing = False
+        self.duration = 5  # Duration in seconds
         self.last_shown_at = 0  # Track when we last showed a tip
         self.last_positive_at = 0  # Track when we last showed positive reinforcement
         self.cached_tip = None
@@ -90,7 +97,8 @@ class StressPopUp:
             f"🌟 You've reached {current_attempts} stress attempts!\n"
             f"Here's something to help you relax:\n"
             f"**{self.fetch_ai_tip()}**",
-            icon="🌟"
+            icon="🌟",
+            duration=10000  # Show for 10 seconds
         )
 
     def show_positive_popup(self, time_since_last_stress):
