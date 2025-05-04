@@ -65,9 +65,6 @@ HabitAware uses computer vision techniques to:
 - Streamlit
 - Python 3.x
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
