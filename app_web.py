@@ -36,7 +36,7 @@ def main():
     if 'total_no_stress' not in st.session_state:
         st.session_state.total_no_stress = 0
     if 'last_stress_time' not in st.session_state:
-        st.session_state.last_stress_time = 0
+        st.session_state.last_stress_time = 0  # 0 means never
     if 'behavior_log' not in st.session_state:
         st.session_state.behavior_log = []
 
@@ -51,6 +51,16 @@ def main():
         sound_manager.set_sound_enabled(sound_enabled)
         # Camera controls
         if st.sidebar.button("Start Camera") and not camera_manager.camera_active:
+            # Reset all stats when starting camera
+            st.session_state.stress_attempts = 0
+            st.session_state.warning_active = False
+            st.session_state.timer_active = False
+            st.session_state.start_time = 0
+            st.session_state.total_duration = 0
+            st.session_state.no_stress_start = time.time()
+            st.session_state.total_no_stress = 0
+            st.session_state.last_stress_time = 0  # Reset to "Never"
+            st.session_state.behavior_log = []
             camera_manager.start_camera()
 
         if st.sidebar.button("Stop Camera") and camera_manager.camera_active:
@@ -94,7 +104,7 @@ def main():
                             if not st.session_state.warning_active:
                                 st.session_state.stress_attempts += 1
                                 st.session_state.warning_active = True
-                                st.session_state.last_stress_time = time.time()
+                                st.session_state.last_stress_time = time.time()  # Update last stress time when behavior is detected
                                 sound_manager.play_warning_sound_threaded()
 
                                 stress_popup.check_and_show_motivation(st.session_state.stress_attempts)
@@ -125,7 +135,15 @@ def main():
 
                         time_since_last_stress = 0
                         if st.session_state.last_stress_time > 0:
-                            time_since_last_stress = time.time() - st.session_state.last_stress_time
+                            # Only increase time if there's no current stress behavior
+                            if behavior is None:
+                                time_since_last_stress = time.time() - st.session_state.last_stress_time
+                            else:
+                                # Reset the last stress time if stress behavior is detected
+                                st.session_state.last_stress_time = time.time()
+
+                        # Check for positive reinforcement when user is doing well
+                        stress_popup.check_and_show_positive_reinforcement(time_since_last_stress)
 
                         ui.update_stats(
                             stress_attempts=st.session_state.stress_attempts,

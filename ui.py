@@ -105,8 +105,10 @@ class UI:
         """
         if self.stats_placeholder:
             # Format last stress time
-            if time_since_last_stress == 0: 
+            if time_since_last_stress == 0 and st.session_state.last_stress_time == 0:
                 last_stress_str = "Never"
+            elif time_since_last_stress == 0:
+                last_stress_str = "Now"
             elif time_since_last_stress < 60: 
                 last_stress_str = f"{int(time_since_last_stress)}s ago"
             elif time_since_last_stress < 3600:
@@ -132,12 +134,12 @@ class UI:
                             <h2 style='margin: 1px 0; color: #2ecc71; font-size: 16px;'>⏱️ {self.format_time(stress_duration)}</h2>
                         </div>
                         <div style='background-color: black; padding: 1px; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);'>
-                            <p style='margin: 0; color: #666; font-size: 12px;'>Clean Streak</p>
+                            <p style='margin: 0; color: #666; font-size: 12px;'>Last Stressed</p>
                             <h2 style='margin: 1px 0; color: #9b59b6; font-size: 16px;'>🕒 {last_stress_str}</h2>
                         </div>
                     </div>
                 </div>
-                """, 
+                """,
                 unsafe_allow_html=True
             )
 
