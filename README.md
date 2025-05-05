@@ -71,3 +71,13 @@ HabitAware uses computer vision techniques to:
 - OpenCV for computer vision capabilities
 - MediaPipe for hand and face detection
 - Streamlit for web interface 
+
+## License
+
+This project is licensed under the **Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)** License.
+
+You are free to use, remix, and learn from this code for personal or educational purposes.  
+🚫 Please do not reuse this project for competitions or commercial use without significant original contributions and proper attribution.
+
+Original creators: [Jackie Lin, Rayat Chowdhury, Fuad Farhan]
+
